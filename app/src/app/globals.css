@@ -238,6 +238,17 @@ body {
 }
 
 /* ============================================================
+   MODO DISCURSO — LARGURA TOTAL
+============================================================ */
+
+.page-content:has(.discourse-page) {
+  width: 100%;
+  max-width: 100%;
+  padding-left: 0;
+  padding-right: 0;
+}
+
+/* ============================================================
    CARD
 ============================================================ */
 
@@ -419,11 +430,6 @@ body {
    EDITOR + STUDY PANEL
 ============================================================ */
 
-/*
-   PADRÃO:
-   painel fechado → editor ocupa 100%.
-*/
-
 .editor-with-panel {
   display: grid;
 
@@ -440,12 +446,6 @@ body {
 /* ============================================================
    TABLET
    768px → 1279px
-
-   Painel fechado:
-   editor = 100%
-
-   Painel aberto:
-   painel aparece abaixo do editor.
 ============================================================ */
 
 @media (min-width: 768px) and (max-width: 1279px) {
@@ -457,12 +457,6 @@ body {
 /* ============================================================
    DESKTOP
    1280px+
-
-   Painel fechado:
-   editor = 100%
-
-   Painel aberto:
-   editor + painel lateral.
 ============================================================ */
 
 @media (min-width: 1280px) {
@@ -473,11 +467,6 @@ body {
 
     width: 100%;
   }
-
-  /*
-     :has() detecta quando o VersePanel
-     realmente está aberto/renderizado.
-  */
 
   .editor-with-panel:has(.verse-side-panel) {
     grid-template-columns:
@@ -503,22 +492,13 @@ body {
   align-self: start;
 }
 
-/*
-   SOMENTE DESKTOP:
-   painel acompanha a rolagem da página.
-*/
-
+/* Somente desktop */
 @media (min-width: 1280px) {
   .verse-side-panel {
     position: sticky;
     top: 1rem;
   }
 }
-
-/*
-   Evita overflow horizontal
-   de textos bíblicos longos.
-*/
 
 .verse-side-panel p {
   overflow-wrap: break-word;
@@ -568,4 +548,507 @@ body {
   .outline-page .editor-with-panel {
     width: 100%;
   }
+}
+
+/* ============================================================
+   MODO DISCURSO
+============================================================ */
+
+.discourse-page {
+  width: 100%;
+  min-height: 100dvh;
+
+  background: var(--background);
+  color: var(--ink);
+
+  display: flex;
+  flex-direction: column;
+
+  padding-bottom: 0;
+}
+
+/* ============================================================
+   HEADER DO DISCURSO
+============================================================ */
+
+.discourse-header {
+  position: sticky;
+  top: 0;
+  z-index: 30;
+
+  width: 100%;
+
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  gap: 1rem;
+
+  padding: 0.75rem 1rem;
+
+  background: color-mix(in srgb,
+      var(--surface) 94%,
+      transparent);
+
+  border-bottom: 1px solid var(--border);
+
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+}
+
+.discourse-header-left {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+
+  min-width: 0;
+}
+
+.discourse-header-title {
+  display: flex;
+  flex-direction: column;
+
+  min-width: 0;
+}
+
+.discourse-header-main-title {
+  font-size: 0.95rem;
+  font-weight: 600;
+
+  color: var(--ink);
+
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.discourse-header-category {
+  font-size: 0.7rem;
+  color: var(--ink-muted);
+
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.discourse-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+
+  flex-shrink: 0;
+}
+
+/* ============================================================
+   BOTÕES
+============================================================ */
+
+.discourse-icon-button,
+.discourse-control-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  border: 0;
+
+  color: var(--ink-muted);
+  background: transparent;
+
+  cursor: pointer;
+
+  transition:
+    color 0.15s ease,
+    background-color 0.15s ease,
+    opacity 0.15s ease;
+}
+
+.discourse-icon-button {
+  width: 2.25rem;
+  height: 2.25rem;
+
+  border-radius: 9999px;
+}
+
+.discourse-icon-button:hover {
+  color: var(--ink);
+  background: var(--background);
+}
+
+.discourse-icon-button:active {
+  transform: scale(0.96);
+}
+
+.discourse-control-button {
+  width: 2rem;
+  height: 2rem;
+
+  border-radius: 8px;
+}
+
+.discourse-control-button:hover:not(:disabled) {
+  color: var(--ink);
+  background: var(--background);
+}
+
+.discourse-control-button:disabled {
+  opacity: 0.3;
+  cursor: default;
+}
+
+.discourse-font-controls {
+  display: flex;
+  align-items: center;
+
+  padding: 0.125rem;
+
+  border: 1px solid var(--border);
+  border-radius: 9999px;
+
+  background: var(--surface);
+}
+
+.discourse-font-label {
+  min-width: 2rem;
+
+  text-align: center;
+
+  font-size: 0.8rem;
+  font-weight: 600;
+
+  color: var(--ink);
+}
+
+/* ============================================================
+   LAYOUT DO DISCURSO
+============================================================ */
+
+.discourse-layout {
+  display: grid;
+
+  grid-template-columns: minmax(0, 1fr);
+
+  gap: 1rem;
+
+  width: 100%;
+  min-width: 0;
+
+  align-items: start;
+}
+
+.discourse-content {
+  width: 100%;
+  min-width: 0;
+}
+
+/*
+   Documento mais largo para evitar
+   aquelas bordas enormes da imagem.
+*/
+
+.discourse-document {
+  width: 100%;
+  max-width: 1000px;
+
+  margin: 0 auto;
+
+  padding: 2.5rem 2rem 5rem;
+}
+
+/* ============================================================
+   TÍTULO
+============================================================ */
+
+.discourse-heading {
+  margin-bottom: 2rem;
+
+  padding-bottom: 1.25rem;
+
+  border-bottom: 1px solid var(--border);
+}
+
+.discourse-heading h1 {
+  margin: 0;
+
+  font-family: var(--font-fraunces);
+  font-size: clamp(1.8rem, 4vw, 2.5rem);
+  line-height: 1.2;
+
+  font-weight: 600;
+
+  color: var(--primary);
+
+  letter-spacing: -0.02em;
+}
+
+.discourse-category {
+  display: inline-block;
+
+  margin-top: 0.6rem;
+
+  padding: 0.25rem 0.65rem;
+
+  border-radius: 9999px;
+
+  background: color-mix(in srgb,
+      var(--accent) 12%,
+      transparent);
+
+  color: var(--accent);
+
+  font-size: 0.75rem;
+  font-weight: 500;
+}
+
+/* ============================================================
+   CORPO DO DISCURSO
+============================================================ */
+
+.discourse-body {
+  width: 100%;
+
+  font-family: var(--font-inter);
+
+  line-height: 1.85;
+
+  color: var(--ink);
+
+  transition: font-size 0.15s ease;
+}
+
+.discourse-editor {
+  width: 100%;
+  min-width: 0;
+
+  outline: none;
+}
+
+/* ============================================================
+   PARÁGRAFOS
+============================================================ */
+
+.discourse-editor p {
+  margin: 0 0 1.25em;
+}
+
+/* ============================================================
+   TÍTULOS INTERNOS
+============================================================ */
+
+.discourse-editor h1 {
+  margin: 1.8em 0 0.65em;
+
+  font-family: var(--font-fraunces);
+  font-size: 1.45em;
+  line-height: 1.3;
+
+  font-weight: 700;
+
+  color: var(--primary);
+}
+
+.discourse-editor h2 {
+  margin: 1.6em 0 0.55em;
+
+  font-family: var(--font-fraunces);
+  font-size: 1.25em;
+  line-height: 1.35;
+
+  font-weight: 600;
+
+  color: var(--ink);
+}
+
+.discourse-editor h3 {
+  margin: 1.4em 0 0.45em;
+
+  font-size: 1.05em;
+  line-height: 1.4;
+
+  font-weight: 600;
+
+  color: var(--ink);
+}
+
+/* ============================================================
+   LISTAS
+============================================================ */
+
+.discourse-editor ul,
+.discourse-editor ol {
+  margin: 0.75em 0 1.25em;
+
+  padding-left: 1.5em;
+}
+
+.discourse-editor li {
+  margin: 0.3em 0;
+}
+
+/* ============================================================
+   CITAÇÕES
+============================================================ */
+
+.discourse-editor blockquote {
+  margin: 1.5em 0;
+
+  padding: 0.75em 1em;
+
+  border-left: 3px solid var(--accent);
+
+  color: var(--ink-muted);
+
+  background: color-mix(in srgb,
+      var(--accent) 5%,
+      transparent);
+}
+
+/* ============================================================
+   LINKS
+============================================================ */
+
+.discourse-editor a {
+  color: var(--primary);
+}
+
+/* ============================================================
+   VERSÍCULO NO MODO DISCURSO
+============================================================ */
+
+.discourse-editor .bible-verse-chip {
+  font-size: 0.82em;
+
+  padding: 0.12em 0.45em;
+
+  vertical-align: baseline;
+}
+
+/* ============================================================
+   ESPAÇO FINAL
+============================================================ */
+
+.discourse-end-space {
+  height: 30vh;
+}
+
+/* ============================================================
+   DISCURSO — DESKTOP
+============================================================ */
+
+@media (min-width: 1280px) {
+  .discourse-layout:has(.verse-side-panel) {
+    grid-template-columns:
+      minmax(0, 1fr) 380px;
+
+    padding-right: 1rem;
+  }
+
+  .discourse-document {
+    max-width: 1000px;
+
+    padding-left: 2.5rem;
+    padding-right: 2.5rem;
+  }
+
+  .discourse-layout .verse-side-panel {
+    margin-top: 1rem;
+  }
+}
+
+/* ============================================================
+   DISCURSO — TABLET
+============================================================ */
+
+@media (min-width: 768px) and (max-width: 1279px) {
+  .discourse-document {
+    max-width: 1000px;
+
+    padding-left: 2rem;
+    padding-right: 2rem;
+  }
+}
+
+/* ============================================================
+   DISCURSO — MOBILE
+============================================================ */
+
+@media (max-width: 767px) {
+  .discourse-header {
+    padding:
+      0.65rem 0.75rem;
+  }
+
+  .discourse-header-main-title {
+    max-width: 42vw;
+  }
+
+  .discourse-font-label {
+    display: none;
+  }
+
+  .discourse-control-button {
+    width: 1.85rem;
+    height: 1.85rem;
+  }
+
+  .discourse-document {
+    padding:
+      1.5rem 1rem 3rem;
+  }
+
+  .discourse-heading {
+    margin-bottom: 1.5rem;
+  }
+
+  .discourse-heading h1 {
+    font-size: 1.75rem;
+  }
+
+  .discourse-end-space {
+    height: 20vh;
+  }
+}
+
+/* ============================================================
+   MODO DISCURSO — OCULTAR MENU INFERIOR
+============================================================ */
+
+/*
+   Enquanto o Modo Discurso estiver aberto,
+   o menu inferior flutuante desaparece.
+
+   Ao voltar para a página anterior,
+   .discourse-page deixa de existir e o menu
+   volta automaticamente.
+*/
+
+body:has(.discourse-page) .fixed.bottom-0 {
+  display: none !important;
+}
+
+/*
+   Também remove o espaço reservado pelo
+   menu inferior dentro do app.
+*/
+
+body:has(.discourse-page) .app-shell {
+  padding-bottom: 0;
+}
+
+/* ============================================================
+   FULLSCREEN
+============================================================ */
+
+.discourse-page:fullscreen {
+  background: var(--background);
+
+  overflow-y: auto;
+}
+
+.discourse-page:fullscreen .discourse-header {
+  position: sticky;
+  top: 0;
+}
+
+.discourse-page:fullscreen .discourse-document {
+  padding-bottom: 8rem;
 }

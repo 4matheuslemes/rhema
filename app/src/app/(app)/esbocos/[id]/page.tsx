@@ -1,8 +1,10 @@
 "use client";
 
 import { useEffect, useState, use, useRef } from "react";
+import Link from "next/link";
+import { Share2, Loader2, Check, Mic2 } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { ArrowLeft, Save, Share2, Loader2, Check } from "lucide-react";
+
 import { createClient } from "@/lib/supabase/client";
 import { AppHeader } from "@/components/layout/app-header";
 import { Button } from "@/components/ui/button";
@@ -14,23 +16,37 @@ import { OUTLINE_CATEGORIES } from "@/lib/constants";
 import { toast } from "sonner";
 import { useDebounce } from "@/hooks/use-debounce";
 
-export default function OutlineEditorPage({ params }: { params: Promise<{ id: string }> }) {
+export default function OutlineEditorPage({
+  params,
+}: {
+  params: Promise<{ id: string }>;
+}) {
   const router = useRouter();
   const { id } = use(params);
   const isNew = id === "novo";
 
   const [loading, setLoading] = useState(!isNew);
   const [saving, setSaving] = useState(false);
-  const [saveStatus, setSaveStatus] = useState<"saved" | "saving" | "idle">("idle");
+  const [saveStatus, setSaveStatus] = useState<
+    "saved" | "saving" | "idle"
+  >("idle");
 
   const [title, setTitle] = useState("");
-  const [category, setCategory] = useState<string>(OUTLINE_CATEGORIES[0]);
-  const [content, setContent] = useState<any>({ type: "doc", content: [] });
+  const [category, setCategory] = useState<string>(
+    OUTLINE_CATEGORIES[0]
+  );
+  const [content, setContent] = useState<any>({
+    type: "doc",
+    content: [],
+  });
 
   const supabase = createClient();
   const isFirstRender = useRef(true);
 
-  // Load existing outline
+  // ============================================================
+  // LOAD OUTLINE
+  // ============================================================
+
   useEffect(() => {
     if (isNew) return;
 
@@ -56,7 +72,10 @@ export default function OutlineEditorPage({ params }: { params: Promise<{ id: st
     loadOutline();
   }, [id, isNew, router, supabase]);
 
-  // Autosave
+  // ============================================================
+  // AUTOSAVE
+  // ============================================================
+
   const debouncedContent = useDebounce(content, 2000);
   const debouncedTitle = useDebounce(title, 2000);
 
@@ -71,7 +90,10 @@ export default function OutlineEditorPage({ params }: { params: Promise<{ id: st
     async function autosave() {
       setSaveStatus("saving");
 
-      const { data: { user } } = await supabase.auth.getUser();
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+
       if (!user) return;
 
       if (isNew) {
@@ -102,25 +124,28 @@ export default function OutlineEditorPage({ params }: { params: Promise<{ id: st
       }
 
       setSaveStatus("saved");
-      setTimeout(() => setSaveStatus("idle"), 2000);
+
+      setTimeout(() => {
+        setSaveStatus("idle");
+      }, 2000);
     }
 
     autosave();
   }, [debouncedContent, debouncedTitle, category]);
 
+  // ============================================================
+  // SHARE
+  // ============================================================
+
   const handleShare = async () => {
-    // Generate simple text representation
-    // A robust implementation would recursively traverse the Tiptap JSON
-    // but for this MVP we'll just extract text nodes.
     let text = `${title}\n${category}\n\n`;
 
     try {
-      const { generateText } = await import('@tiptap/core');
-      const StarterKit = (await import('@tiptap/starter-kit')).default;
+      const { generateText } = await import("@tiptap/core");
+      const StarterKit = (await import("@tiptap/starter-kit")).default;
 
-      const plainText = generateText(content, [
-        StarterKit,
-      ]);
+      const plainText = generateText(content, [StarterKit]);
+
       text += plainText;
     } catch (e) {
       text += "Baixe o Rhema para ver o conteúdo completo.";
@@ -130,16 +155,22 @@ export default function OutlineEditorPage({ params }: { params: Promise<{ id: st
       try {
         await navigator.share({
           title: `Esboço: ${title}`,
-          text: text,
+          text,
         });
       } catch (e) {
-        // user cancelled
+        // Usuário cancelou
       }
     } else {
       navigator.clipboard.writeText(text);
-      toast.success("Esboço copiado para a área de transferência");
+      toast.success(
+        "Esboço copiado para a área de transferência"
+      );
     }
   };
+
+  // ============================================================
+  // LOADING
+  // ============================================================
 
   if (loading) {
     return (
@@ -149,43 +180,131 @@ export default function OutlineEditorPage({ params }: { params: Promise<{ id: st
     );
   }
 
+  // ============================================================
+  // PAGE
+  // ============================================================
+
   return (
     <EditorProvider>
       <div className="outline-page flex flex-col h-full gap-4 pb-20">
+
         <AppHeader
           title=""
           right={
             <div className="flex items-center gap-2">
+
+              {/* STATUS DE SALVAMENTO */}
               <span className="text-xs text-[var(--ink-muted)] flex items-center gap-1 w-20 justify-end">
-                {saveStatus === "saving" && <><Loader2 size={12} className="animate-spin" /> Salvando</>}
-                {saveStatus === "saved" && <><Check size={12} className="text-[var(--success)]" /> Salvo</>}
+                {saveStatus === "saving" && (
+                  <>
+                    <Loader2
+                      size={12}
+                      className="animate-spin"
+                    />
+                    Salvando
+                  </>
+                )}
+
+                {saveStatus === "saved" && (
+                  <>
+                    <Check
+                      size={12}
+                      className="text-[var(--success)]"
+                    />
+                    Salvo
+                  </>
+                )}
               </span>
-              <Button variant="ghost" size="icon" onClick={handleShare} className="h-9 w-9">
+
+              {/* MODO DISCURSO */}
+              {!isNew && (
+                <Button
+                  asChild
+                  variant="primary"
+                  size="sm"
+                  className="h-9 px-3 rounded-full"
+                >
+                  <Link href={`/esbocos/${id}/discurso`}>
+                    <Mic2 size={16} className="mr-1.5" />
+                    Discursar
+                  </Link>
+                </Button>
+              )}
+
+              {/* COMPARTILHAR */}
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={handleShare}
+                className="h-9 w-9"
+                title="Compartilhar"
+              >
                 <Share2 size={18} />
               </Button>
+
             </div>
           }
         />
 
-        {/* Title and Category */}
+        {/* ======================================================
+            TITLE + CATEGORY
+        ====================================================== */}
+
         <div className="flex flex-col gap-3 -mt-2">
+
           <Input
             value={title}
             onChange={(e) => setTitle(e.target.value)}
             placeholder="Título do esboço..."
-            className="text-2xl font-display font-semibold h-auto py-2 border-transparent bg-transparent px-0 focus:border-transparent focus:ring-0 placeholder:text-[var(--ink-muted)]/50"
+            className="
+              text-2xl
+              font-display
+              font-semibold
+              h-auto
+              py-2
+              border-transparent
+              bg-transparent
+              px-0
+              focus:border-transparent
+              focus:ring-0
+              placeholder:text-[var(--ink-muted)]/50
+            "
           />
+
           <Select
             value={category}
             onChange={(e) => setCategory(e.target.value)}
-            options={OUTLINE_CATEGORIES.map(c => ({ value: c, label: c }))}
-            className="w-auto text-sm h-8 bg-[var(--background)] border-transparent"
+            options={OUTLINE_CATEGORIES.map((c) => ({
+              value: c,
+              label: c,
+            }))}
+            className="
+              w-auto
+              text-sm
+              h-8
+              bg-[var(--background)]
+              border-transparent
+            "
           />
+
         </div>
 
-        {/* Editor Area with Study Panel */}
+        {/* ======================================================
+            EDITOR + STUDY PANEL
+        ====================================================== */}
+
         <div className="editor-with-panel mt-2">
-          <div className="min-w-0 w-full bg-[var(--surface)] border border-[var(--border)] rounded-xl p-4 shadow-sm">
+
+          <div className="
+            min-w-0
+            w-full
+            bg-[var(--surface)]
+            border
+            border-[var(--border)]
+            rounded-xl
+            p-4
+            shadow-sm
+          ">
             <OutlineEditor
               initialContent={content}
               onChange={setContent}
@@ -193,7 +312,9 @@ export default function OutlineEditorPage({ params }: { params: Promise<{ id: st
           </div>
 
           <VersePanel />
+
         </div>
+
       </div>
     </EditorProvider>
   );
