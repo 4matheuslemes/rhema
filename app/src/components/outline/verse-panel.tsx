@@ -34,28 +34,28 @@ export function VersePanel() {
   useEffect(() => {
     if (!selectedVerse || !isPanelOpen) return;
 
+    const verse = selectedVerse;
+
     async function fetchVerses() {
       setLoading(true);
       setVerseContent([]);
 
       const supabase = createClient();
 
-      const startVerse = selectedVerse.verse;
-
-      const endVerse =
-        selectedVerse.verseEnd ?? selectedVerse.verse;
+      const startVerse = verse.verse;
+      const endVerse = verse.verseEnd ?? verse.verse;
 
       const { data, error } = await supabase
         .from("bible_verses")
         .select("verse, text")
-        .eq("book_number", selectedVerse.book)
-        .eq("chapter", selectedVerse.chapter)
+        .eq("book_number", verse.book)
+        .eq("chapter", verse.chapter)
         .gte("verse", startVerse)
         .lte("verse", endVerse)
         .order("verse", { ascending: true });
 
       if (error) {
-        console.error("Erro ao buscar versículos:", error);
+        console.error("Error fetching verses:", error);
         setVerseContent([]);
       } else {
         setVerseContent(data ?? []);
