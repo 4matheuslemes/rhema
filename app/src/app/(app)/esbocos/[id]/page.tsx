@@ -41,14 +41,21 @@ export default function OutlineEditorPage({
   });
 
   const supabase = createClient();
-  const isFirstRender = useRef(true);
+
+  const hasLoaded = useRef(isNew);
+  const isCreating = useRef(false);
 
   // ============================================================
   // LOAD OUTLINE
   // ============================================================
 
   useEffect(() => {
-    if (isNew) return;
+    if (isNew) {
+      hasLoaded.current = true;
+      return;
+    }
+
+    hasLoaded.current = false;
 
     async function loadOutline() {
       const { data, error } = await supabase
@@ -67,6 +74,10 @@ export default function OutlineEditorPage({
       setCategory(data.category || OUTLINE_CATEGORIES[0]);
       setContent(data.content);
       setLoading(false);
+
+      // Só libera o autosave depois que o conteúdo
+      // original do banco terminou de carregar.
+      hasLoaded.current = true;
     }
 
     loadOutline();
@@ -80,47 +91,86 @@ export default function OutlineEditorPage({
   const debouncedTitle = useDebounce(title, 2000);
 
   useEffect(() => {
-    if (isFirstRender.current) {
-      isFirstRender.current = false;
-      return;
-    }
+    // Nunca salva durante o carregamento inicial.
+    if (!hasLoaded.current || loading) return;
 
-    if (loading || (!title && isNew)) return;
+    // ============================================================
+    // NOVO ESBOÇO
+    // ============================================================
 
-    async function autosave() {
-      setSaveStatus("saving");
+    if (isNew) {
+      // Impede dois INSERTs para o mesmo esboço.
+      if (isCreating.current) return;
 
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
+      const hasText =
+        title.trim().length > 0 ||
+        (content?.content && content.content.length > 0);
 
-      if (!user) return;
+      // Não cria registro vazio.
+      if (!hasText) return;
 
-      if (isNew) {
+      isCreating.current = true;
+
+      async function createOutline() {
+        setSaveStatus("saving");
+
+        const {
+          data: { user },
+        } = await supabase.auth.getUser();
+
+        if (!user) {
+          isCreating.current = false;
+          setSaveStatus("idle");
+          return;
+        }
+
         const { data, error } = await supabase
           .from("outlines")
           .insert({
             user_id: user.id,
-            title: title || "Sem título",
+            title: title.trim() || "Sem título",
             category,
-            content: debouncedContent,
+            content,
           })
           .select("id")
           .single();
 
-        if (!error && data) {
-          router.replace(`/esbocos/${data.id}`);
+        if (error || !data) {
+          console.error("Erro ao criar esboço:", error);
+          isCreating.current = false;
+          setSaveStatus("idle");
+          return;
         }
-      } else {
-        await supabase
-          .from("outlines")
-          .update({
-            title: title || "Sem título",
-            category,
-            content: debouncedContent,
-            updated_at: new Date().toISOString(),
-          })
-          .eq("id", id);
+
+        setSaveStatus("saved");
+        router.replace(`/esbocos/${data.id}`);
+      }
+
+      createOutline();
+      return;
+    }
+
+    // ============================================================
+    // ESBOÇO EXISTENTE
+    // ============================================================
+
+    async function updateOutline() {
+      setSaveStatus("saving");
+
+      const { error } = await supabase
+        .from("outlines")
+        .update({
+          title: title.trim() || "Sem título",
+          category,
+          content,
+          updated_at: new Date().toISOString(),
+        })
+        .eq("id", id);
+
+      if (error) {
+        console.error("Erro ao salvar esboço:", error);
+        setSaveStatus("idle");
+        return;
       }
 
       setSaveStatus("saved");
@@ -130,8 +180,17 @@ export default function OutlineEditorPage({
       }, 2000);
     }
 
-    autosave();
-  }, [debouncedContent, debouncedTitle, category]);
+    updateOutline();
+  }, [
+    debouncedContent,
+    debouncedTitle,
+    category,
+    id,
+    isNew,
+    loading,
+    router,
+    supabase,
+  ]);
 
   // ============================================================
   // SHARE
