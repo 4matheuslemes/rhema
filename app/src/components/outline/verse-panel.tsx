@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { X, Loader2 } from "lucide-react";
 import { Drawer } from "@/components/ui/drawer";
 import { Card } from "@/components/ui/card";
@@ -21,15 +21,38 @@ export function VersePanel() {
   const [loading, setLoading] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
 
+  const panelRef = useRef<HTMLDivElement>(null);
+
   useEffect(() => {
-    const checkMobile = () => setIsMobile(window.innerWidth < 768);
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 768);
+    };
 
     checkMobile();
 
     window.addEventListener("resize", checkMobile);
 
-    return () => window.removeEventListener("resize", checkMobile);
+    return () => {
+      window.removeEventListener("resize", checkMobile);
+    };
   }, []);
+
+  /*
+   * Quando o painel é aberto em tablet/desktop,
+   * leva suavemente o usuário até ele.
+   */
+  useEffect(() => {
+    if (!isPanelOpen || !selectedVerse || isMobile) return;
+
+    const timer = window.setTimeout(() => {
+      panelRef.current?.scrollIntoView({
+        behavior: "smooth",
+        block: "start",
+      });
+    }, 100);
+
+    return () => window.clearTimeout(timer);
+  }, [isPanelOpen, selectedVerse, isMobile]);
 
   useEffect(() => {
     if (!selectedVerse || !isPanelOpen) return;
@@ -43,7 +66,8 @@ export function VersePanel() {
       const supabase = createClient();
 
       const startVerse = verse.verse;
-      const endVerse = verse.verseEnd ?? verse.verse;
+      const endVerse =
+        verse.verseEnd ?? verse.verse;
 
       const { data, error } = await supabase
         .from("bible_verses")
@@ -67,7 +91,9 @@ export function VersePanel() {
     fetchVerses();
   }, [selectedVerse, isPanelOpen]);
 
-  if (!isPanelOpen || !selectedVerse) return null;
+  if (!isPanelOpen || !selectedVerse) {
+    return null;
+  }
 
   const content = (
     <div className="flex flex-col gap-4">
@@ -80,7 +106,7 @@ export function VersePanel() {
           Não foi possível carregar o texto deste versículo.
         </p>
       ) : (
-        <div className="flex flex-col gap-3">
+        <div className="flex flex-col gap-4">
           {verseContent.map((verse) => (
             <p
               key={verse.verse}
@@ -98,6 +124,9 @@ export function VersePanel() {
     </div>
   );
 
+  /*
+   * CELULAR
+   */
   if (isMobile) {
     return (
       <Drawer
@@ -106,20 +135,32 @@ export function VersePanel() {
         title={selectedVerse.text}
         description="Tradução do Novo Mundo"
       >
-        <div className="pt-2">{content}</div>
+        <div className="pt-2">
+          {content}
+        </div>
       </Drawer>
     );
   }
 
+  /*
+   * TABLET + DESKTOP
+   */
   return (
-    <div className="verse-side-panel">
+    <div
+      ref={panelRef}
+      className="verse-side-panel w-full min-w-0"
+    >
       <Card
         padding="md"
-        className="sticky top-4 border-[var(--accent)]/30 shadow-md"
+        className="
+          w-full
+          border-[var(--accent)]/30
+          shadow-md
+        "
       >
         <div className="flex items-center justify-between mb-4 border-b border-[var(--border)] pb-3">
-          <div>
-            <h3 className="font-display font-semibold text-lg text-[var(--primary)]">
+          <div className="min-w-0">
+            <h3 className="font-display font-semibold text-lg text-[var(--primary)] truncate">
               {selectedVerse.text}
             </h3>
 
@@ -132,7 +173,14 @@ export function VersePanel() {
             variant="ghost"
             size="icon"
             onClick={closeVersePanel}
-            className="h-8 w-8 text-[var(--ink-muted)] hover:text-[var(--ink)] hover:bg-[var(--background)]"
+            className="
+              h-8
+              w-8
+              shrink-0
+              text-[var(--ink-muted)]
+              hover:text-[var(--ink)]
+              hover:bg-[var(--background)]
+            "
           >
             <X size={18} />
           </Button>

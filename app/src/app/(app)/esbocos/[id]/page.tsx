@@ -18,11 +18,11 @@ export default function OutlineEditorPage({ params }: { params: Promise<{ id: st
   const router = useRouter();
   const { id } = use(params);
   const isNew = id === "novo";
-  
+
   const [loading, setLoading] = useState(!isNew);
   const [saving, setSaving] = useState(false);
   const [saveStatus, setSaveStatus] = useState<"saved" | "saving" | "idle">("idle");
-  
+
   const [title, setTitle] = useState("");
   const [category, setCategory] = useState<string>(OUTLINE_CATEGORIES[0]);
   const [content, setContent] = useState<any>({ type: "doc", content: [] });
@@ -33,26 +33,26 @@ export default function OutlineEditorPage({ params }: { params: Promise<{ id: st
   // Load existing outline
   useEffect(() => {
     if (isNew) return;
-    
+
     async function loadOutline() {
       const { data, error } = await supabase
         .from("outlines")
         .select("*")
         .eq("id", id)
         .single();
-        
+
       if (error) {
         toast.error("Erro ao carregar esboço");
         router.push("/esbocos");
         return;
       }
-      
+
       setTitle(data.title);
       setCategory(data.category || OUTLINE_CATEGORIES[0]);
       setContent(data.content);
       setLoading(false);
     }
-    
+
     loadOutline();
   }, [id, isNew, router, supabase]);
 
@@ -70,7 +70,7 @@ export default function OutlineEditorPage({ params }: { params: Promise<{ id: st
 
     async function autosave() {
       setSaveStatus("saving");
-      
+
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
 
@@ -100,7 +100,7 @@ export default function OutlineEditorPage({ params }: { params: Promise<{ id: st
           })
           .eq("id", id);
       }
-      
+
       setSaveStatus("saved");
       setTimeout(() => setSaveStatus("idle"), 2000);
     }
@@ -113,11 +113,11 @@ export default function OutlineEditorPage({ params }: { params: Promise<{ id: st
     // A robust implementation would recursively traverse the Tiptap JSON
     // but for this MVP we'll just extract text nodes.
     let text = `${title}\n${category}\n\n`;
-    
+
     try {
       const { generateText } = await import('@tiptap/core');
       const StarterKit = (await import('@tiptap/starter-kit')).default;
-      
+
       const plainText = generateText(content, [
         StarterKit,
       ]);
@@ -151,7 +151,7 @@ export default function OutlineEditorPage({ params }: { params: Promise<{ id: st
 
   return (
     <EditorProvider>
-      <div className="flex flex-col h-full gap-4 pb-20">
+      <div className="outline-page flex flex-col h-full gap-4 pb-20">
         <AppHeader
           title=""
           right={
@@ -166,32 +166,32 @@ export default function OutlineEditorPage({ params }: { params: Promise<{ id: st
             </div>
           }
         />
-        
+
         {/* Title and Category */}
         <div className="flex flex-col gap-3 -mt-2">
-          <Input 
-            value={title} 
-            onChange={(e) => setTitle(e.target.value)} 
+          <Input
+            value={title}
+            onChange={(e) => setTitle(e.target.value)}
             placeholder="Título do esboço..."
             className="text-2xl font-display font-semibold h-auto py-2 border-transparent bg-transparent px-0 focus:border-transparent focus:ring-0 placeholder:text-[var(--ink-muted)]/50"
           />
-          <Select 
-            value={category} 
+          <Select
+            value={category}
             onChange={(e) => setCategory(e.target.value)}
             options={OUTLINE_CATEGORIES.map(c => ({ value: c, label: c }))}
             className="w-auto text-sm h-8 bg-[var(--background)] border-transparent"
           />
         </div>
 
-        {/* Editor Area with Side Panel layout */}
+        {/* Editor Area with Study Panel */}
         <div className="editor-with-panel mt-2">
-          <div className="flex-1 min-w-0 bg-[var(--surface)] border border-[var(--border)] rounded-xl p-4 shadow-sm">
-            <OutlineEditor 
-              initialContent={content} 
-              onChange={setContent} 
+          <div className="min-w-0 w-full bg-[var(--surface)] border border-[var(--border)] rounded-xl p-4 shadow-sm">
+            <OutlineEditor
+              initialContent={content}
+              onChange={setContent}
             />
           </div>
-          
+
           <VersePanel />
         </div>
       </div>

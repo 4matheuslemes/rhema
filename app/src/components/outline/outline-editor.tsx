@@ -30,7 +30,8 @@ export function OutlineEditor({ initialContent, onChange }: OutlineEditorProps) 
     content: initialContent || { type: "doc", content: [] },
     editorProps: {
       attributes: {
-        class: "tiptap-editor focus:outline-none w-full min-h-[60vh] py-4",
+        class:
+          "tiptap-editor focus:outline-none w-full min-w-0 min-h-[60vh] py-4",
       },
     },
     onUpdate: ({ editor }) => {
@@ -55,7 +56,7 @@ export function OutlineEditor({ initialContent, onChange }: OutlineEditorProps) 
   };
 
   return (
-    <div className="w-full flex flex-col h-full relative">
+    <div className="w-full flex flex-col relative min-w-0">
       <div className="sticky top-0 z-10 bg-[var(--surface)]/95 backdrop-blur-sm border-b border-[var(--border)] py-2 px-1 mb-4 flex items-center gap-1 overflow-x-auto no-scrollbar">
         <ToolbarButton onClick={toggleH1} active={editor.isActive('heading', { level: 1 })} icon={<Heading1 size={18} />} label="H1" />
         <ToolbarButton onClick={toggleH2} active={editor.isActive('heading', { level: 2 })} icon={<Heading2 size={18} />} label="H2" />
@@ -77,7 +78,10 @@ export function OutlineEditor({ initialContent, onChange }: OutlineEditorProps) 
         </Button>
       </div>
 
-      <EditorContent editor={editor} className="flex-1" />
+      <EditorContent
+        editor={editor}
+        className="w-full min-w-0"
+      />
     </div>
   );
 }
@@ -88,8 +92,8 @@ function ToolbarButton({ onClick, active, icon, label }: { onClick: () => void, 
       onClick={onClick}
       title={label}
       className={`p-1.5 rounded-md transition-colors ${active
-          ? "bg-[var(--primary)]/10 text-[var(--primary)]"
-          : "text-[var(--ink-muted)] hover:text-[var(--ink)] hover:bg-[var(--background)]"
+        ? "bg-[var(--primary)]/10 text-[var(--primary)]"
+        : "text-[var(--ink-muted)] hover:text-[var(--ink)] hover:bg-[var(--background)]"
         }`}
     >
       {icon}
