@@ -4,6 +4,7 @@ import {
     useImperativeHandle,
     useState,
     useRef,
+    useMemo,
 } from "react";
 import { Loader2, BookOpen } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
@@ -35,6 +36,7 @@ export const VerseSuggestionList = forwardRef<
     const [results, setResults] = useState<VerseResult[]>([]);
     const [selectedIndex, setSelectedIndex] = useState(0);
     const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+    const supabase = useMemo(() => createClient(), []);
 
     useEffect(() => {
         setSelectedIndex(0);
@@ -65,7 +67,6 @@ export const VerseSuggestionList = forwardRef<
             const verseEnd = verseEndStr ? parseInt(verseEndStr, 10) : undefined;
 
             setLoading(true);
-            const supabase = createClient();
 
             let q = supabase
                 .from("bible_verses")

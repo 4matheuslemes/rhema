@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import Link from "next/link";
 import { Plus, Search, FileText, MoreVertical, Trash2, Copy } from "lucide-react";
 import { AppHeader } from "@/components/layout/app-header";
@@ -18,7 +18,7 @@ export default function OutlinesPage() {
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
   const debouncedSearch = useDebounce(search, 300);
-  const supabase = createClient();
+  const supabase = useMemo(() => createClient(), []);
 
   useEffect(() => {
     fetchOutlines();

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -10,6 +10,7 @@ import { createClient } from "@/lib/supabase/client";
 import { APP_NAME, APP_DESCRIPTION } from "@/lib/constants";
 import { Button } from "@/components/ui/button";
 import { Input, Field } from "@/components/ui/input";
+import { RhemaMark } from "@/components/layout/rhema-mark";
 
 const schema = z.object({
   email: z.string().email("E-mail inválido"),
@@ -21,6 +22,7 @@ type FormData = z.infer<typeof schema>;
 export default function LoginPage() {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
+  const supabase = useMemo(() => createClient(), []);
 
   const {
     register,
@@ -30,18 +32,17 @@ export default function LoginPage() {
 
   const onSubmit = async (data: FormData) => {
     setLoading(true);
-    const supabase = createClient();
     const { error } = await supabase.auth.signInWithPassword({
       email: data.email,
       password: data.password,
     });
-    
+
     if (error) {
       toast.error("Credenciais inválidas. Verifique e tente novamente.");
       setLoading(false);
       return;
     }
-    
+
     router.push("/");
     router.refresh();
   };
@@ -49,8 +50,9 @@ export default function LoginPage() {
   return (
     <div className="w-full max-w-sm">
       <div className="text-center mb-10 flex flex-col items-center">
-        <div className="w-20 h-20 bg-[var(--primary)] text-[var(--accent)] rounded-2xl mb-4 flex items-center justify-center shadow-lg font-display text-4xl font-bold">
-          ”
+        {/* Símbolo do Rhema — SVG inline, aspas brancas sobre balão bordô */}
+        <div className="mb-4 drop-shadow-md">
+          <RhemaMark size={80} />
         </div>
         <h1 className="font-display font-semibold text-3xl text-[var(--ink)]">
           {APP_NAME}

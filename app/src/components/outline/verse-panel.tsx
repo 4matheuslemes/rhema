@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, useMemo } from "react";
 import { X, Loader2 } from "lucide-react";
 import { Drawer } from "@/components/ui/drawer";
 import { Card } from "@/components/ui/card";
@@ -22,6 +22,7 @@ export function VersePanel() {
   const [isMobile, setIsMobile] = useState(false);
 
   const panelRef = useRef<HTMLDivElement>(null);
+  const supabase = useMemo(() => createClient(), []);
 
   useEffect(() => {
     const checkMobile = () => {
@@ -62,8 +63,6 @@ export function VersePanel() {
     async function fetchVerses() {
       setLoading(true);
       setVerseContent([]);
-
-      const supabase = createClient();
 
       const startVerse = verse.verse;
       const endVerse =

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, use, useRef } from "react";
+import { useEffect, useState, use, useRef, useMemo } from "react";
 import Link from "next/link";
 import { Share2, Loader2, Check, Mic2 } from "lucide-react";
 import { useRouter } from "next/navigation";
@@ -40,7 +40,7 @@ export default function OutlineEditorPage({
     content: [],
   });
 
-  const supabase = createClient();
+  const supabase = useMemo(() => createClient(), []);
 
   const hasLoaded = useRef(isNew);
   const isCreating = useRef(false);

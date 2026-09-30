@@ -19,6 +19,10 @@
   --accent: #B8934A;
   --success: #6B9080;
 
+  /* Rhema — cor própria do chip bíblico (bordô/vinho) */
+  --verse-accent: #8B4A52;
+  --verse-accent-bg: #8B4A521A;
+
   /* Surfaces */
   --background: #ECEEE9;
   --surface: #FFFFFF;
@@ -48,6 +52,10 @@
   --primary-dark: #132C48;
   --accent: #C9A55A;
   --success: #7DA898;
+
+  /* Rhema — bordô claro para contraste em fundo escuro */
+  --verse-accent: #C97A84;
+  --verse-accent-bg: #C97A841A;
 
   --background: #0B1522;
   --surface: #1C3350;
@@ -373,14 +381,12 @@ body {
 
   padding: 0.125rem 0.5rem;
 
-  background-color: color-mix(in srgb,
-      var(--accent) 12%,
-      transparent);
+  background-color: var(--verse-accent-bg);
 
-  color: var(--accent);
+  color: var(--verse-accent);
 
   border: 1px solid color-mix(in srgb,
-      var(--accent) 25%,
+      var(--verse-accent) 30%,
       transparent);
 
   border-radius: 9999px;
@@ -401,7 +407,7 @@ body {
 
 .bible-verse-chip:hover {
   background-color: color-mix(in srgb,
-      var(--accent) 20%,
+      var(--verse-accent) 22%,
       transparent);
 
   transform: scale(1.02);
